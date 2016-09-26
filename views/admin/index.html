@@ -1,0 +1,75 @@
+{{define "head"}}
+<title>Admin Area</title>
+{{end}}
+
+{{define "neck"}}
+<link rel='stylesheet' href='/public/views/admin/index.min.css?{{.cacheBreaker}}'>
+{{end}}
+
+{{define "body"}}
+<div class="row">
+    <div class="col-sm-12">
+        <div class="page-header">
+            <h2>Admin Area</h2>
+        </div>
+        <div class="col-lg-12" id="chart_container">
+            <script>
+                $(function () {
+                    Highcharts.setOptions({
+                        colors: ['#058DC7', '#50B432', '#ED561B', '#DDDF00', '#24CBE5', '#64E572', '#FF9655', '#FFF263', '#6AF9C4']
+                    });
+
+                    $('#chart_container').highcharts({
+                        chart: {},
+
+                        series: [{
+                            data: [-29.9, -71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4]
+                        }]
+                    });
+                });
+            </script>
+
+        </div>
+        <!--<div class="row">-->
+        <!--<div class="col-sm-4">-->
+        <!--<div class="well stat">-->
+        <!--<div class="stat-value">{{.CountUser}}</div>-->
+        <!--<div class="stat-label">Users</div>-->
+        <!--</div>-->
+        <!--</div>-->
+        <!--<div class="col-sm-4">-->
+        <!--<div class="well stat">-->
+        <!--<div class="stat-value">{{.CountAccount}}</div>-->
+        <!--<div class="stat-label">Accounts</div>-->
+        <!--</div>-->
+        <!--</div>-->
+        <!--<div class="col-sm-4">-->
+        <!--<div class="well stat">-->
+        <!--<div class="stat-value">{{.CountAdmin}}</div>-->
+        <!--<div class="stat-label">Admins</div>-->
+        <!--</div>-->
+        <!--</div>-->
+        <!--</div>-->
+        <!--<div class="row">-->
+        <!--<div class="col-sm-4">-->
+        <!--<div class="well stat">-->
+        <!--<div class="stat-value">{{.CountAdminGroup}}</div>-->
+        <!--<div class="stat-label">Groups</div>-->
+        <!--</div>-->
+        <!--</div>-->
+        <!--<div class="col-sm-4">-->
+        <!--<div class="well stat">-->
+        <!--<div class="stat-value">{{.CountCategory}}</div>-->
+        <!--<div class="stat-label">Categories</div>-->
+        <!--</div>-->
+        <!--</div>-->
+        <!--<div class="col-sm-4">-->
+        <!--<div class="well stat">-->
+        <!--<div class="stat-value">{{.CountStatus}}</div>-->
+        <!--<div class="stat-label">Statuses</div>-->
+        <!--</div>-->
+        <!--</div>-->
+        <!--</div>-->
+    </div>
+</div>
+{{end}}

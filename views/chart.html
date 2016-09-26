@@ -1,0 +1,130 @@
+{{define "head"}}
+<title>Chart details</title>
+{{end}}
+
+{{define "neck"}}
+<link rel='stylesheet' href='/public/views/index.min.css?{{.cacheBreaker}}'>
+{{end}}
+
+{{define "body"}}
+<h2>Chart data
+    {{if .Admin}} -- Hello, administrator.{{end}}
+</h2>
+<div id="chart_container"></div>
+<button id="sync_btn" class="autocompare">Refresh data</button>
+<script>
+    //    $(function () {
+    //        Highcharts.setOptions({
+    //            colors: ['#058DC7', '#50B432', '#ED561B', '#DDDF00', '#24CBE5', '#64E572', '#FF9655', '#FFF263', '#6AF9C4']
+    //        });
+    //
+    //        $('#chart_container').highcharts({
+    //            chart: {},
+    //
+    //            series: [{
+    //                data: [-29.9, -71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4]
+    //            }]
+    //        });
+    //    });
+    var chart;
+    jQuery(document).ready(function () {
+        var options = {
+            chart: {
+                renderTo: 'chart_container',
+                plotBackgroundColor: null,
+                plotBorderWidth: null,
+                defaultSeriesType: 'line',
+                zoomType: 'x',
+                panning: true,
+                panKey: 'shift'
+            },
+            title: {
+                text: ''
+            },
+            legend: {
+                enabled: false
+            },
+            xAxis: {
+                //categories: []
+                type: 'datetime'
+            },
+            yAxis: {
+                title: {
+                    text: 'Units'
+                }
+            },
+            plotOptions: {
+                series: {
+                    lineWidth: 1
+                }
+            },
+            series: [
+                {
+                    name: "value",
+                    marker: {
+                        enabled: false,
+                    },
+                    states: {
+                        hover: {
+                            lineWidthPlus: 0
+                        }
+                    },
+                    data: []
+                }
+            ],
+            exporting: {
+                enabled: false,
+            }
+        };
+
+        // Create the chart
+        chart = new Highcharts.Chart(options);
+        fill_data();
+    });
+
+    function loadData(data) {
+        if (chart.series.length === 0) {
+            chart.addSeries(data);
+        } else {
+            //console.log("modify data");
+            chart.series[0].setData(data);
+        }
+    }
+
+    function fill_data() {
+        test_data = [];
+        t = (new Date()).getTime();
+        for (i = 0; i < 1000; i++) {
+            test_data.push({
+                x: t + i * 1000,
+                y: Math.random() * -2000 + 1000
+            })
+        }
+        ;
+        console.log(test_data);
+        loadData(test_data);
+    }
+
+    //    $("#foo").click(function () {
+    //        fill_data();
+    //    });
+
+    $("#sync_btn").click(function () {
+        post_data = {"type": 2};
+        //console.log(post_data);
+        post_data = JSON.stringify(post_data);
+        //console.log(post_data);
+
+        $.post("/api/data", post_data, function (data) {
+            console.log(data);
+            loadData(data);
+        })
+
+
+    })
+</script>
+<h1></h1>
+<h1></h1>
+<h1></h1>
+
+{{end}}
