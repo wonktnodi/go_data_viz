@@ -64,6 +64,7 @@
                     marker: {
                         enabled: false,
                     },
+                    turboThreshold: 0,
                     states: {
                         hover: {
                             lineWidthPlus: 0
@@ -92,24 +93,17 @@
     }
 
     function fill_data() {
-        test_data = [];
-        t = (new Date()).getTime();
-        for (i = 0; i < 1000; i++) {
-            test_data.push({
-                x: t + i * 1000,
-                y: Math.random() * -2000 + 1000
-            })
-        }
-        ;
-        console.log(test_data);
-        loadData(test_data);
-    }
-
-    //    $("#foo").click(function () {
-    //        fill_data();
-    //    });
-
-    $("#sync_btn").click(function () {
+   //     test_data = [];
+   //     t = (new Date()).getTime();
+   //     for (i = 0; i < 1000; i++) {
+   //         test_data.push({
+   //             x: t + i * 1000,
+   //             y: Math.random() * -2000 + 1000
+   //         })
+   //     }
+   //     ;
+   //     console.log(test_data);
+   //     loadData(test_data);
         post_data = {"type": 2};
         //console.log(post_data);
         post_data = JSON.stringify(post_data);
@@ -119,7 +113,23 @@
             console.log(data);
             loadData(data);
         })
+    }
 
+    //    $("#foo").click(function () {
+    //        fill_data();
+    //    });
+
+    $("#sync_btn").click(function () {
+  //      post_data = {"type": 2};
+  //      //console.log(post_data);
+  //      post_data = JSON.stringify(post_data);
+  //      //console.log(post_data);
+
+  //      $.post("/api/data", post_data, function (data) {
+  //          console.log(data);
+  //          loadData(data);
+  //      })
+        fill_data();
 
     })
 </script>

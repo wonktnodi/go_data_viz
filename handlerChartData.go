@@ -7,19 +7,31 @@ import (
     "log"
     "encoding/json"
     "net/http"
-    "time"
     "math/rand"
+    "gopkg.in/mgo.v2"
+    "fmt"
 )
 
-
 type ChartDataQuery struct {
-	ID                   bson.ObjectId `json:"-" bson:"_id,omitempty"`
-	Type                 int64        `json:"type" bson:"username"`
+    ID    bson.ObjectId `json:"-" bson:"_id,omitempty"`
+    Type  int64        `json:"type" bson:"username"`
+    Area  int64    `json:"area" bson:"area, omitempty"`
+    Point int64   `json:"point" bson:"pt, omitempty"`
 }
 
 type ChartData struct {
-    X    int64    `json:"x" bson:"_id,omitempty"`
-    Y    int64    `json:"y" bson:"username"`
+    X     int64    `json:"x" bson:"_id,omitempty"`
+    Y     int64    `json:"y" bson:"username"`
+    Area  int64    `json:"area" bson:"area, omitempty"`
+    Point int64   `json:"point" bson:"pt, omitempty"`
+}
+
+type DataItem struct {
+    //ID        bson.ObjectId `bson:"-,omitempty" json:"-"`
+    Timestamp int64  `bson:"ts" json:"x"`
+    Area      int  `bson:"area" json:"area"`
+    Point     int  `bson:"pt" json:"pt"`
+    Value     float64 `bson:"val" json:"y""`
 }
 
 func random(min, max int64) int64 {
@@ -32,34 +44,55 @@ func getChartData(c *gin.Context) {
 
     body := &ChartDataQuery{}
     err := json.NewDecoder(c.Request.Body).Decode(&body)
-	if err != nil {
-		response.Errors = append(response.Errors, err.Error())
-		response.Fail()
-		return
-	}
+    if err != nil {
+        response.Errors = append(response.Errors, err.Error())
+        response.Fail()
+        return
+    }
 
-    //err := c.Bind(body)
     log.Printf("query body: %v\n", body)
     //if err != nil {
     //    response.Errors = append(response.Errors, err.Error())
     //    response.Fail()
     //    return
     //}
-    resp := make([]ChartData, 1000)
 
-    t := time.Now()
-    tval := t.Unix()
+    session, err := mgo.Dial("localhost:27017")
+    defer session.Close()
 
-    for i, _ := range resp {
-        resp[i].X = tval + (int64)(i * 1000)
-        resp[i].Y = random(-1000, 1000)
+    if err != nil {
+        fmt.Println(err)
+        return
     }
 
-    c.JSON(http.StatusOK, resp)
+    db := session.DB("data_viz")
+    collection := db.C("data");
+
+    log.Println(collection.FullName)
+
+    var result []DataItem
+    err = collection.Find(bson.M{"pt": 1, "area": 1}).All(&result)
+    if err != nil {
+        response.Errors = append(response.Errors, err.Error())
+        response.Fail()
+        return
+    }
+
+    //resp := make([]ChartData, 1000)
+    //
+    //t := time.Now()
+    //tval := t.Unix()
+    //
+    //for i, _ := range resp {
+    //    resp[i].X = tval + (int64)(i * 1000)
+    //    resp[i].Y = random(-1000, 1000)
+    //}
+
+    c.JSON(http.StatusOK, result)
 
 }
 
 func renderChartData(c *gin.Context) {
-	c.HTML(http.StatusOK, c.Request.URL.Path, c.Keys)
+    c.HTML(http.StatusOK, c.Request.URL.Path, c.Keys)
 }
 
