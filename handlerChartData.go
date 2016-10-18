@@ -2,21 +2,22 @@ package main
 
 import (
     "github.com/gin-gonic/gin"
-    "gopkg.in/mgo.v2/bson"
-
-    "log"
     "encoding/json"
     "net/http"
     "math/rand"
     "gopkg.in/mgo.v2"
     "fmt"
+    "./storage"
+    "time"
+    "log"
 )
 
 type ChartDataQuery struct {
-    ID    bson.ObjectId `json:"-" bson:"_id,omitempty"`
-    Type  int64        `json:"type" bson:"username"`
-    Area  int64    `json:"area" bson:"area, omitempty"`
-    Point int64   `json:"point" bson:"pt, omitempty"`
+    Type  int64    `json:"type"`
+    Area  int      `json:"area"`
+    Point int      `json:"point"`
+    Begin string   `json:"begin"`
+    End   string   `json:"end"`
 }
 
 type ChartData struct {
@@ -49,8 +50,8 @@ func getChartData(c *gin.Context) {
         response.Fail()
         return
     }
-
-    log.Printf("query body: %v\n", body)
+    log.Printf("request body: %+v\n", body)
+    //log.Printf("query body: %v\n", body)
     //if err != nil {
     //    response.Errors = append(response.Errors, err.Error())
     //    response.Fail()
@@ -65,31 +66,39 @@ func getChartData(c *gin.Context) {
         return
     }
 
-    db := session.DB("data_viz")
-    collection := db.C("data");
+    //db := session.DB("data_viz")
+    //collection := db.C("data");
 
-    log.Println(collection.FullName)
+    //log.Println(collection.FullName)
 
-    var result []DataItem
-    err = collection.Find(bson.M{"pt": 1, "area": 1}).All(&result)
-    if err != nil {
-        response.Errors = append(response.Errors, err.Error())
-        response.Fail()
-        return
-    }
-
-    //resp := make([]ChartData, 1000)
-    //
-    //t := time.Now()
-    //tval := t.Unix()
-    //
-    //for i, _ := range resp {
-    //    resp[i].X = tval + (int64)(i * 1000)
-    //    resp[i].Y = random(-1000, 1000)
+    //var result []DataItem
+    //err = collection.Find(bson.M{"pt": 1, "area": 1}).All(&result)
+    //if err != nil {
+    //    response.Errors = append(response.Errors, err.Error())
+    //    response.Fail()
+    //    return
     //}
 
-    c.JSON(http.StatusOK, result)
+    //t := time.Unix(0, 0).Format("2006-1-2")
+    body.Begin = time.Unix(0, 0).Format("2006-1-2")
+    begin, err := time.Parse("2006-1-2", body.Begin)
+    end, err := time.Parse("2006-1-2", body.End)
 
+    log.Println("query date: ", begin, " to ", end)
+
+    data, err := storage.GetChartData(body.Area, body.Point, begin, end)
+
+    //if len(data) == 0 {
+    //    response.Errors = append(response.Errors, "No data")
+    //    response.Fail()
+    //    return
+    //}
+
+    for i := range data {
+        data[i].Timestamp *= 1000
+    }
+
+    c.JSON(http.StatusOK, data)
 }
 
 func renderChartData(c *gin.Context) {

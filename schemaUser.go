@@ -16,6 +16,18 @@ type vendorOauth struct {
 	ID string `bson:"id"`
 }
 
+type NewUser struct {
+    Id             uint64 `gorm:"primary_key;AUTO_INCREMENT"`
+    UserName       string `gorm:"unique"`
+    Password       string `gorm:"type:varchar(256)"`
+    email          string
+    GroupID        int
+    Active         bool
+    CreateTime     time.Time
+    PwdResetToken  string
+    PwdResetExpire time.Time
+}
+
 type User struct {
 	ID                   bson.ObjectId `json:"_id" bson:"_id,omitempty"`
 	Username             string        `json:"username" bson:"username"`

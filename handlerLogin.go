@@ -10,8 +10,11 @@ import (
 
 	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
-	"gopkg.in/mgo.v2"
+	//"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+    "./storage"
+    "./model"
+    "fmt"
 )
 
 func renderLogin(c *gin.Context) {
@@ -69,16 +72,31 @@ func login(c *gin.Context) {
 	IpCountChan := make(chan int)
 	IpUserCountChan := make(chan int)
 	clientIP := c.ClientIP()
-	go getCount(collection, IpCountChan, bson.M{
-		"ip": clientIP,
-	})
-	go getCount(collection, IpUserCountChan, bson.M{
-		"ip":   clientIP,
-		"user": body.Username,
-	})
-	IpCount := <-IpCountChan
-	IpUserCount := <-IpUserCountChan
-	if IpCount > config.LoginAttempts.ForIp || IpUserCount > config.LoginAttempts.ForIpAndUser {
+    //var cnt int64
+    //cnt, err = storage.GetUserLoginCntByIP(clientIP)
+    //fmt.Println("@@@1 cnt: ", cnt)
+    //cnt, err = storage.GetUserLoginCntByIpAndName(clientIP, body.Username)
+    //fmt.Println("@@@2 cnt: ", cnt)
+
+
+
+	//go getCount(collection, IpCountChan, bson.M{
+	//	"ip": clientIP,
+	//})
+	//go getCount(collection, IpUserCountChan, bson.M{
+	//	"ip":   clientIP,
+	//	"user": body.Username,
+	//})
+	//IpCount := <-IpCountChan
+	//IpUserCount := <-IpUserCountChan
+
+    go storage.GetUserLoginCntByIP(clientIP, IpCountChan)
+    go storage.GetUserLoginCntByIpAndName(clientIP, body.Username, IpUserCountChan)
+    IpCount := <-IpCountChan
+    IpUserCount := <-IpUserCountChan
+
+    fmt.Println("@@@@ :", IpCount, ", ", IpUserCount)
+    if IpCount > config.LoginAttempts.ForIp || IpUserCount > config.LoginAttempts.ForIpAndUser {
 		response.Errors = append(response.Errors, "You've reached the maximum number of login attempts. Please try again later.")
 		response.Fail()
 		return
@@ -91,15 +109,21 @@ func login(c *gin.Context) {
 		bson.M{"username": body.Username},
 		bson.M{"email": body.Username}, // instead username can be email
 	}}).One(&user)
+
+    var val *model.User
+    val, err = storage.GetOne(body.Username)
+    fmt.Printf("%+v\n", val)
+
 	if err != nil {
-		if err == mgo.ErrNotFound {
+		//if err == mgo.ErrNotFound {
 			response.Errors = append(response.Errors, "check username or email")
 			response.Fail()
 			return
-		}
-		EXCEPTION(err)
+		//}
+		//EXCEPTION(err)
 	}
-	err = user.isPasswordOk(body.Password)
+	//err = user.isPasswordOk(body.Password)
+    err = val.IsPasswordOk(body.Password)
 	if err != nil {
 		attempt := LoginAttempt{}
 		attempt.IP = clientIP
@@ -109,6 +133,8 @@ func login(c *gin.Context) {
 		if err != nil {
 			EXCEPTION(err)
 		}
+
+        storage.InsertUserLoginAttempt(clientIP, body.Username)
 		response.Errors = append(response.Errors, "check password")
 		response.Fail()
 		return

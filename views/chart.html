@@ -4,29 +4,69 @@
 
 {{define "neck"}}
 <link rel='stylesheet' href='/public/views/index.min.css?{{.cacheBreaker}}'>
+<link rel="stylesheet" href="http://cdn.staticfile.org/jqueryui/1.11.4/jquery-ui.min.css">
+<script src="http://cdn.cdnjs.net/moment.js/2.8.1/moment.min.js"></script>
+<script src="http://cdn.staticfile.org/jqueryui/1.11.4/jquery-ui.min.js"></script>
+<style>
+    .fs14 {
+        font-size: 18px;
+    }
+</style>
 {{end}}
 
 {{define "body"}}
 <h2>Chart data
     {{if .Admin}} -- Hello, administrator.{{end}}
+    <div class="pull-right">
+        <div class="btn-group">
+            <input type="text" id="from" name="from" class="fs14">
+            <label for="to" class="fs14">To</label>
+            <input type="text" id="to" name="to" class="fs14">
+        </div>
+        <div class="btn-group">
+            <button id="btn_area" data-toggle="dropdown" class="btn btn-default dropdown-toggle">Area 1
+            </button>
+            <ul class="dropdown-menu" id="dropdown-area">
+                <!-- 下拉菜单 -->
+                <li data-range="1"><a href="javascript:void 0">Area 1</a></li>
+                <li data-range="2"><a href="javascript:void 0">Area 2</a></li>
+            </ul>
+        </div>
+        <div class="btn-group">
+            <button id="btn_point" data-toggle="dropdown" class="btn btn-default dropdown-toggle">Point 1
+            </button>
+            <ul class="dropdown-menu" id="dropdown-point">
+                <!-- 下拉菜单 -->
+                <li data-range="1"><a href="javascript:void 0">Point 1</a></li>
+                <li data-range="2"><a href="javascript:void 0">Point 2</a></li>
+            </ul>
+        </div>
+
+        <div class="btn-group">
+            <button id="btn_day" data-toggle="dropdown" class="btn btn-default dropdown-toggle">Today
+            </button>
+            <ul id="dropdown-day" class="dropdown-menu pull-right">
+                <li data-range="today"><a href="javascript:void 0">Today</a></li>
+                <li data-range="yesterday"><a href="javascript:void 0">Yesterday</a></li>
+                <li class="divider"></li>
+                <li data-range="7days"><a href="javascript:void 0">Last 7 days</a></li>
+                <li data-range="30days"><a href="javascript:void 0">Last 30 days</a></li>
+                <li class="divider"></li>
+                <li data-range="custom" data-toggle="modal" data-target="#modalwidget_e0fv1b"><a
+                        href="javascript:void 0">Custom...</a></li>
+            </ul>
+        </div>
+    </div>
 </h2>
 <div id="chart_container"></div>
 <button id="sync_btn" class="autocompare">Refresh data</button>
 <script>
-    //    $(function () {
-    //        Highcharts.setOptions({
-    //            colors: ['#058DC7', '#50B432', '#ED561B', '#DDDF00', '#24CBE5', '#64E572', '#FF9655', '#FFF263', '#6AF9C4']
-    //        });
-    //
-    //        $('#chart_container').highcharts({
-    //            chart: {},
-    //
-    //            series: [{
-    //                data: [-29.9, -71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4]
-    //            }]
-    //        });
-    //    });
     var chart;
+    var date_begin = moment().format('YYYY-MM-DD');
+    var date_end = moment().format('YYYY-MM-DD');
+    var area = 1;
+    var point = 1;
+
     jQuery(document).ready(function () {
         var options = {
             chart: {
@@ -84,6 +124,8 @@
     });
 
     function loadData(data) {
+        console.log("data size:", data.length)
+        console.log(data[0])
         if (chart.series.length === 0) {
             chart.addSeries(data);
         } else {
@@ -93,45 +135,69 @@
     }
 
     function fill_data() {
-   //     test_data = [];
-   //     t = (new Date()).getTime();
-   //     for (i = 0; i < 1000; i++) {
-   //         test_data.push({
-   //             x: t + i * 1000,
-   //             y: Math.random() * -2000 + 1000
-   //         })
-   //     }
-   //     ;
-   //     console.log(test_data);
-   //     loadData(test_data);
-        post_data = {"type": 2};
+        post_data = {
+            "type": 2,
+            "area": area,
+            "point": point,
+            "begin": date_begin,
+            "end": date_end,
+        };
         //console.log(post_data);
         post_data = JSON.stringify(post_data);
         //console.log(post_data);
 
         $.post("/api/data", post_data, function (data) {
-            console.log(data);
+            //console.log(data);
             loadData(data);
         })
     }
 
-    //    $("#foo").click(function () {
-    //        fill_data();
-    //    });
+    $("#from").datepicker({
+        defaultDate: "+1w",
+        changeMonth: true,
+        numberOfMonths: 1,
+        dateFormat: "yy-mm-dd",
+        onClose: function (selectedDate) {
+            $("#to").datepicker("option", "minDate", selectedDate);
+            date_begin = selectedDate;
+            console.log(date_begin)
+        }
+    });
+    $("#from").datepicker('setDate', new Date());
+    $("#to").datepicker({
+        defaultDate: "+1w",
+        changeMonth: true,
+        numberOfMonths: 1,
+        dateFormat: "yy-mm-dd",
+        onClose: function (selectedDate) {
+            $("#from").datepicker("option", "maxDate", selectedDate);
+            date_end = selectedDate
+            console.log(date_end)
+        }
+    });
+    $("#to").datepicker('setDate', new Date());
 
     $("#sync_btn").click(function () {
-  //      post_data = {"type": 2};
-  //      //console.log(post_data);
-  //      post_data = JSON.stringify(post_data);
-  //      //console.log(post_data);
-
-  //      $.post("/api/data", post_data, function (data) {
-  //          console.log(data);
-  //          loadData(data);
-  //      })
         fill_data();
 
-    })
+    });
+    $('#dropdown-day').delegate('li', 'click', function () {
+        var range = $(this).text();
+        document.getElementById("btn_day").innerHTML = range
+        console.log(range);
+    });
+
+    $('#dropdown-area').delegate('li', 'click', function () {
+        var range = $(this).text();
+        document.getElementById("btn_area").innerHTML = range
+        console.log(range);
+    });
+
+    $('#dropdown-point').delegate('li', 'click', function () {
+        var range = $(this).text();
+        document.getElementById("btn_point").innerHTML = range
+        console.log(range);
+    });
 </script>
 <h1></h1>
 <h1></h1>
